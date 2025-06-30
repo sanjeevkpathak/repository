@@ -1,0 +1,72 @@
+# checks what proxy server the windows server is connecting to for Crowdstrike connectivity. 
+
+[System.Collections.ArrayList]$Proxy_Servers = @()
+
+# replace 0.0.0.0 with proxy IP
+# FQDN of the proxy server
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-Ohio.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-Georgia.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-Wisconsin.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-nehterlands.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-England.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-Singnpore.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-Inidia.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-Japap.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'PITC-Zscaler-China.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'apps-update.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+$obj = [pscustomobject]@{ name = 'amer-apps-update.proxy.corporate.ge.com'; port = '80'; ip = '0.0.0.0'}; $Proxy_Servers += $obj
+
+
+
+function Test-Proxy {
+    param (
+        $ProxyServer,
+        $ProxyPort,
+        $url
+    )
+    $Socket = New-Object Net.Sockets.TcpClient
+    try {
+        $Socket.Connect($ProxyServer, $ProxyPort)
+        if ($socket.connected) {
+            $Socket.Dispose()
+            $Socket = $null
+            return $true;
+            } 
+        else {
+            $Socket.Dispose()
+            $Socket = $null
+            return $false;
+        }
+    }
+    catch {
+        $Socket.Dispose()
+        $Socket = $null
+        return $false;
+    }
+}
+
+
+[System.Collections.ArrayList]$Proxy_Check = @()
+
+foreach ($proxy_Server in $proxy_servers) {
+    Try {
+        $responsetime = [math]::Round($(measure-command {$proxycheck = Test-Proxy $($proxy_server.name) $($proxy_server.port) $proxy_server.url -ea Stop}).MilliSeconds,0)
+        if ($proxycheck) {             
+            $obj = [pscustomobject]@{address = $proxy_server.name ; port = $proxy_server.port ; responsetime = $responsetime };$Proxy_Check += $obj
+        } 
+        else { 
+            $responsetime = [math]::Round($(measure-command {$proxycheck = Test-Proxy $($proxy_server.ip) $($proxy_server.port) $proxy_server.url -ea Stop}).MilliSeconds,0)
+            if ($proxycheck){
+                $obj = [pscustomobject]@{address = $proxy_server.ip ; port = $proxy_server.port ; responsetime = $responsetime };$Proxy_Check += $obj
+            }
+        }
+    }
+    catch {         
+    } 
+}
+If ($Proxy_Check) {
+
+    $proxy = $Proxy_Check | Sort-Object -Property responsetime | Select-Object -First 1
+    Write-Host "$($proxy.address):$($proxy.port)"
+}
+else { "No Proxy Server available" } 
