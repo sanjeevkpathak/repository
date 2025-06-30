@@ -1,0 +1,29 @@
+# Disable the Print Spooler Service for CVE-2021-34527
+# Get Current Spooler Service state
+$SpoolerSvc = Get-Service -Name "Spooler"
+
+# Check if Spooler is already disabled
+if ($SpoolerSvc.StartType -eq "Disabled")
+{
+    Write-Host "The Spooler Service is already disabled."
+    exit 0
+}
+
+# spooler service is not running start it up.
+if ($SpoolerSvc.Status -ne "Running")
+{
+    Start-Service -Name "Spooler"
+}
+
+try
+{
+    Stop-Service -Name "Spooler" -Force -ErrorAction Stop
+    Set-Service -Name "Spooler" -StartupType "Disabled" -ErrorAction Stop
+    Write-Host "The Spooler service was disabled successfully."
+    exit 0
+}
+catch
+{
+    Write-Error "Failed to disabled the Spooler service"
+    exit 1
+}
