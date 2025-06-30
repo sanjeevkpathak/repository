@@ -18,3 +18,26 @@ Elseif ($OS -like "10.0*"){
     Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol -NoRestart; 
     Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force;
 }
+END OF SCRIPT
+
+
+# Version 2
+# Get processor information from WMI
+$processor = Get-WmiObject -Class Win32_Processor
+
+# Extract the number of cores and logical processors
+$cntNumberOfCores = [int]$processor.NumberOfCores
+$cntNumberOfLogicalProcessors = [int]$processor.NumberOfLogicalProcessors
+
+# Write registry key for FeatureSettingsOverrideMask
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" `
+                 -Name "FeatureSettingsOverrideMask" -Value 3 -Type DWord
+
+# Determine and set the correct FeatureSettingsOverride value
+if ($cntNumberOfLogicalProcessors -gt $cntNumberOfCores) {
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" `
+                     -Name "FeatureSettingsOverride" -Value 72 -Type DWord
+} else {
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" `
+                     -Name "FeatureSettingsOverride" -Value 8264 -Type DWord
+}
