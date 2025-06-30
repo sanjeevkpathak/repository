@@ -1,0 +1,109 @@
+# QA-Audit to check that everything is done correctly
+
+Write-Host "This series of checks will verify all software and configurations are removed."
+
+## Uninstalls
+
+#Get the list of software installed on the server by querying the registry. 
+#More reliable than using Get-WmiObject -Class Win32_Product
+
+$UninstallKey=”SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall” 
+$reg=[microsoft.win32.registrykey]::OpenBaseKey('LocalMachine','default') 
+$regkey=$reg.OpenSubKey($UninstallKey) 
+$subkeys=$regkey.GetSubKeyNames() 
+
+$software = @()
+
+foreach($key in $subkeys){
+    $thisKey=$UninstallKey+”\\”+$key
+    $thisSubKey=$reg.OpenSubKey($thisKey) 
+    $obj = New-Object PSObject
+    $obj | Add-Member -MemberType NoteProperty -Name “DisplayName” -Value $($thisSubKey.GetValue(“DisplayName”))
+    $obj | Add-Member -MemberType NoteProperty -Name “DisplayVersion” -Value $($thisSubKey.GetValue(“DisplayVersion”))
+    $obj | Add-Member -MemberType NoteProperty -Name “InstallLocation” -Value $($thisSubKey.GetValue(“InstallLocation”))
+    $obj | Add-Member -MemberType NoteProperty -Name “Publisher” -Value $($thisSubKey.GetValue(“Publisher”))
+    $software += $obj
+} 
+
+
+# Function to detect software
+function detect-software {
+    param (
+        $productname
+    )
+    $output_text = "Software $productname : "
+    if ($software | Where-Object { $_.DisplayName -match $productname }) 
+    {
+        return $output_text + "(Fail)"
+    } else {
+        return $output_text + "(Pass)"
+    }         
+}
+
+# Function to detect service
+function detect-service {
+    param (
+        $servicename
+    )
+    $output_text = "Service $servicename : "
+    $service = Get-Service -Name $servicename -ErrorAction SilentlyContinue
+    if($service -ne $null)
+    {
+         return $output_text + "(Fail)"
+    } else {
+        return $output_text + "(Pass)"
+    } 
+}
+
+
+# Software List as it appears in "Get-WmiObject -Class Win32_Product"
+$software_audit= @(
+    'ActivClient',
+    'ActivID',
+    'Avamar',
+    'CrowdStrike Sensor Platform',
+    'HP SA Agent',
+    'Qualys',
+    'Sensu',
+    'Splunk',
+    "Cisco Secure Workload Agent"
+)
+
+# Service Audit as it appears in "Services.msc"
+$service_audit= @(
+    'ActivID Shared Store Service',
+    'avbackup',
+    'CSFalconService',
+    'OpswareAgent',
+    'QualysAgent',
+    'sensu-client',
+    'SplunkForwarder',
+    'Tanium Client',
+    "TetSensor"
+)
+
+# Software Audit
+foreach ($product in $software_audit) {detect-software ($product)}
+
+# Service Audit
+foreach ($service in $service_audit) {detect-service ($service)}
+
+
+
+
+## Cleanups
+
+# Local User accounts and Administrators checks
+
+if (get-localuser -Name "Administrator" -ea SilentlyContinue){"Account Administrator : (Pass)"} else {"Account Administrator : (Fail)"}
+if (get-localuser -Name "TransferAdmin" -ea SilentlyContinue){"Account TransferAdmin : (Pass)"} else {"Account TransferAdmin : (Fail)"}
+if (get-localuser -Name "sapm1" -ea SilentlyContinue){"Account SAPM1 : (Fail)"} else {"Account SAPM1 : (Pass)"}
+if (get-localuser -Name "sapm2" -ea SilentlyContinue){"Account SAPM2 : (Fail)"} else {"Account SAPM2 : (Pass)"}
+
+# Credentials
+if ($(Get-ItemProperty -Path "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "CachedLogonsCount").CachedLogonsCount -ne "0") {"CachedLogonsCount : (Fail)"}
+else {"CachedLogonsCount : (Pass)"}
+
+# Security Log
+if ($(Get-EventLog -LogName Security -InstanceId 1102 -ErrorAction SilentlyContinue).TimeGenerated -lt $(get-date).AddDays(-1)) {"Security log : (Fail)"}
+else {"Security log : (Pass)"}
