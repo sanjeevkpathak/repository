@@ -1,0 +1,21 @@
+::
+::
+:: Use this script to run McAfee Endpoint Product Removal Tool
+::
+
+@ECHO OFF
+
+SET EPR_HOME="C:\Windows\Temp\epr"
+
+IF NOT EXIST "%EPR_HOME%\epr_tool.exe" GOTO NOHOME
+
+:: Run the tool -  https://help.uis.cam.ac.uk/files/documents/endpoint_product_removal_user_guide_21.11.pdf
+:: dir %EPR_HOME\epr_tool.exe
+%EPR_HOME%\epr_tool.exe  --accepteula --ALL --NOREBOOT
+
+GOTO COMPLETE
+
+:NOHOME
+echo "McAfee Endpoint Product Removal Tool not found (C:\Windows\Temp\epr\epr_tool.exe)"
+
+:COMPLETE
