@@ -1,0 +1,20 @@
+$OS = (Get-WmiObject Win32_OperatingSystem).Version
+ 
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" SMB1 -Type DWORD -Value 0 Force
+ 
+If ($OS -like "6.3*") {
+ 
+    Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol -NoRestart
+ 
+}
+ElseIf ($OS -like "6.2*") {
+ 
+    Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
+ 
+}
+ 
+Elseif ($OS -like "10.0*"){
+ 
+    Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol -NoRestart; 
+    Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force;
+}
