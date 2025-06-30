@@ -1,0 +1,109 @@
+# Define the paths to the Visual Studio C++ Redistributable installers
+$x86RedistributablePath = "\\server path\VC_redist.x86.exe" 
+$x64RedistributablePath = "\\server patha\VC_redist.x64.exe" 
+
+# Define the silent install arguments
+$installArgs = "/install /quiet /norestart"
+
+# Function to install a Redistributable
+function Install-Redistributable {
+    param (
+        [string]$installerPath
+    )
+
+    if (-Not (Test-Path $installerPath)) {
+        Write-Host "Installer not found: $installerPath"
+        exit 1
+    }
+
+    Write-Host "Installing Redistributable from $installerPath..."
+    Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -NoNewWindow
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Installation completed successfully for $installerPath."
+    } else {
+        Write-Host "Installation failed for $installerPath with exit code $LASTEXITCODE."
+        exit $LASTEXITCODE
+    }
+}
+
+# Install the 32-bit Redistributable
+Install-Redistributable -installerPath $x86RedistributablePath
+
+# Define the silent install arguments
+$installArgs = "/install /quiet /norestart"
+
+# Function to install a Redistributable
+function Install-Redistributable {
+    param (
+        [string]$installerPath
+    )
+
+    if (-Not (Test-Path $installerPath)) {
+        Write-Host "Installer not found: $installerPath"
+        exit 1
+    }
+
+    Write-Host "Installing Redistributable from $installerPath..."
+    Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -NoNewWindow
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Installation completed successfully for $installerPath."
+    } else {
+        Write-Host "Installation failed for $installerPath with exit code $LASTEXITCODE."
+        exit $LASTEXITCODE
+    }
+}
+
+# Define the silent install arguments
+$installArgs = "/install /quiet"
+
+# Function to install a Redistributable
+function Install-Redistributable {
+    param (
+        [string]$installerPath
+    )
+
+    if (-Not (Test-Path $installerPath)) {
+        Write-Host "Installer not found: $installerPath"
+        exit 1
+    }
+
+    Write-Host "Installing Redistributable from $installerPath..."
+    Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -NoNewWindow
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Installation completed successfully for $installerPath."
+    } else {
+        Write-Host "Installation failed for $installerPath with exit code $LASTEXITCODE."
+        exit $LASTEXITCODE
+    }
+}
+
+# Install the 64-bit Redistributable
+Install-Redistributable -installerPath $x64RedistributablePath
+
+# Define the silent install arguments
+$installArgs = "/install /quiet /norestart"
+
+# Function to install a Redistributable
+function Install-Redistributable {
+    param (
+        [string]$installerPath
+    )
+
+    if (-Not (Test-Path $installerPath)) {
+        Write-Host "Installer not found: $installerPath"
+        exit 1
+    }
+
+    Write-Host "Installing Redistributable from $installerPath..."
+    Start-Process -FilePath $installerPath -ArgumentList $installArgs -Wait -NoNewWindow
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Installation completed successfully for $installerPath."
+    } else {
+        Write-Host "Installation failed for $installerPath with exit code $LASTEXITCODE."
+        exit $LASTEXITCODE
+    }
+}
