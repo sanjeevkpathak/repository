@@ -1,0 +1,10 @@
+# Define the path to the executable file
+$path = "C:\Program Files\Cisco Tetration\uninstallall.lnk"
+
+# Check if the file exists
+if (Test-Path $path) {
+    # Start a new PowerShell process with elevated privileges
+    Start-Process powershell -ArgumentList "Start-Process -FilePath '$path' -Verb RunAs" -Verb RunAs
+} else {
+    Write-Error "The specified file does not exist: $path"
+} 
