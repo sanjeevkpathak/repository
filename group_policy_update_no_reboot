@@ -1,0 +1,5 @@
+# Run klist purge command with system account privileges
+Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c klist -li 0:0x3e7 purge" -Wait
+
+# Run gpupdate /force
+Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c gpupdate /force" -Wait
